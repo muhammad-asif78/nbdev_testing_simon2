@@ -8,3 +8,4 @@ pipeline/sam2_checkpoints/**/*.pt filter=lfs diff=lfs merge=lfs -text
 # Angle models, RF-DETR, etc.
 pipeline/weights/**/*.pth filter=lfs diff=lfs merge=lfs -text
 pipeline/weights/**/*.pt  filter=lfs diff=lfs merge=lfs -text
+*.ipynb merge=nbdev-merge
