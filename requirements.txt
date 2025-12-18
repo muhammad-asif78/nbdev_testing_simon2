@@ -12,3 +12,7 @@ pymupdf>=1.23
 scikit-image>=0.22
 scipy>=1.11
 git+https://github.com/facebookresearch/sam2.git
+pydantic
+nbdev
+torch
+torchvision
