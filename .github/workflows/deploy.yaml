@@ -15,7 +15,25 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Deploy docs to GitHub Pages
-        uses: fastai/workflows/quarto-ghp@master
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nbdev==2.* torch torchvision pillow opencv-python pydantic
+          nbdev_install_quarto
+
+      - name: Export notebooks and build docs
+        run: |
+          nbdev_export
+          nbdev_docs
+
+      - name: Deploy docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_docs
+          publish_branch: gh-pages
