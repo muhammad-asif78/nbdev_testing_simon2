@@ -15,13 +15,23 @@ except Exception as e:
     RFDETRMedium = None
 
 _CLASS_NAMES = [
+    # NOTE: This list must match the exact class ordering used to train/export the RF-DETR model.
+    # If class IDs exceed this list length, they will fall back to numeric strings, which breaks
+    # downstream shape handling and produces numeric "shape" values in the API response.
+    "objects",
+    "Cloud",
+    "Diamond",
+    "Double Arrow",
+    "Pentagon",
+    "Racetrack",
+    "Star",
+    "Sticky Notes",
+    "Triangle",
     "arrow",
+    "arrow_head",
     "circle",
-    "diamond",
-    "hexagon",
-    "line",
-    "parallelogram", 
-    "pentagon",
+    "dashed-arrow",
+    "dotted-arrow",
     "rectangle",
     "rounded rectangle",
     "solid-arrow",
@@ -29,6 +39,45 @@ _CLASS_NAMES = [
 
 # Type for detection: (label, top_left, bottom_right, confidence)
 ShapeDetection = Tuple[str, Tuple[float, float], Tuple[float, float], float]
+
+
+def _bbox_iou(a: Tuple[float, float, float, float], b: Tuple[float, float, float, float]) -> float:
+    ax1, ay1, ax2, ay2 = a
+    bx1, by1, bx2, by2 = b
+    xA = max(ax1, bx1)
+    yA = max(ay1, by1)
+    xB = min(ax2, bx2)
+    yB = min(ay2, by2)
+    inter_w = max(0.0, xB - xA)
+    inter_h = max(0.0, yB - yA)
+    inter = inter_w * inter_h
+    if inter <= 0:
+        return 0.0
+    area_a = max(0.0, (ax2 - ax1)) * max(0.0, (ay2 - ay1))
+    area_b = max(0.0, (bx2 - bx1)) * max(0.0, (by2 - by1))
+    denom = area_a + area_b - inter
+    return float(inter / denom) if denom > 0 else 0.0
+
+
+def _nms_detections(dets: List[ShapeDetection], iou_thresh: float = 0.65) -> List[ShapeDetection]:
+    """Simple class-agnostic NMS to reduce duplicate overlapping detections."""
+    if not dets:
+        return []
+    dets_sorted = sorted(dets, key=lambda d: float(d[3]) if len(d) > 3 else 0.0, reverse=True)
+    kept: List[ShapeDetection] = []
+    for d in dets_sorted:
+        _, (x1, y1), (x2, y2), conf = d
+        box = (float(x1), float(y1), float(x2), float(y2))
+        suppress = False
+        for kd in kept:
+            _, (kx1, ky1), (kx2, ky2), _ = kd
+            kbox = (float(kx1), float(ky1), float(kx2), float(ky2))
+            if _bbox_iou(box, kbox) >= iou_thresh:
+                suppress = True
+                break
+        if not suppress:
+            kept.append(d)
+    return kept
 
 
 def _default_weights_path() -> str:
@@ -122,7 +171,7 @@ def detect_shapes(file_path: str, threshold: float = 0.25, raise_on_model_failur
                     float(conf),
                 )
             )
-        return results
+        return _nms_detections(results)
     except Exception as exc:
         print(f"[RF-DETR] Inference failed: {exc}")
         if raise_on_model_failure:
