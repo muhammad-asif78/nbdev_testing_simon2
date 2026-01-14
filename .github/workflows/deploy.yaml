@@ -39,6 +39,11 @@ jobs:
           pip install nbdev==2.*
           pip install -e .
 
+      - name: Install Quarto
+        run: |
+          wget https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.555/quarto-1.4.555-linux-amd64.deb
+          sudo dpkg -i quarto-1.4.555-linux-amd64.deb
+
       - name: Export notebooks and build docs
         env:
           PYTHONPATH: ${{ github.workspace }}

@@ -1,0 +1,18 @@
+"""Content directory utilities for cross-platform compatibility."""
+
+import os
+from pathlib import Path
+
+# Use environment variable if set, otherwise use repo-relative path
+CONTENT_DIR = Path(os.environ.get("NBDEV_CONTENT_DIR", os.environ.get("CONTENT_DIR", Path.cwd() / "content")))
+CONTENT_DIR.mkdir(parents=True, exist_ok=True)
+
+def get_content_path(*path_parts):
+    """Get a path within the content directory."""
+    return CONTENT_DIR.joinpath(*path_parts)
+
+def ensure_content_dir(*path_parts):
+    """Ensure a subdirectory exists within the content directory."""
+    path = get_content_path(*path_parts)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
