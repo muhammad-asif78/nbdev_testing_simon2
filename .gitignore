@@ -67,3 +67,4 @@ pasapi/*.yml
 # OS specific
 Thumbs.db
 .DS_Store
+test_env/
