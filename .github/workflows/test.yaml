@@ -19,7 +19,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install torch torchvision opencv-python pillow pydantic
-          pip install nbdev==2.* nbdev-quarto
+          pip install nbdev==2.* quarto-cli
           pip install -e .
 
       - name: Export notebooks
