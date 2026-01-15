@@ -17,6 +17,8 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AI_BOARD_WORKDIR: ${{ runner.temp }}/ai_board_scanner
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -38,6 +40,7 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
+          mkdir -p "${{ runner.temp }}/ai_board_scanner"
           nbdev_export
           nbdev_quarto
           nbdev_docs
